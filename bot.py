@@ -1,41 +1,29 @@
-import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from main import generate_image
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+import telebot
 
-class LeonardoAPI:
-    def __init__(self):
-        pass
-    
-    def generate_image(self):
-        return 'path/to/generated_image.png'
+API_TOKEN = ''
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Напиши что-нибудь, я сгенерирую картинку!")
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    leonardo_api = LeonardoAPI()
-
-    image_path = leonardo_api.generate_image()
+bot = telebot.TeleBot(API_TOKEN)
 
 
-    await update.message.reply_photo(photo=open(image_path, 'rb'))
-
-def main():
-
-    application = ApplicationBuilder().token('YOUR_BOT_TOKEN').build()
-
-
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+# Handle '/start' and '/help'
+@bot.message_handler(commands=['help', 'start'])
+def send_welcome(message):
+    bot.reply_to(message, """\
+Hi there, I am EchoBot.
+I am here to echo your kind words back to you. Just say anything nice and I'll say the exact same thing to you!\
+""")
 
 
-    application.run_polling()
+# Handle all other messages with content_type 'text' (content_types defaults to ['text'])
+@bot.message_handler(func=lambda message: True)
+def echo_message(message):
+    bot.reply_to(message, message.text)
+  
 
-if __name__ == '__main__':
-    main()
+    image_link = generate_image("An oil painting of a cat", "image.jpg")
+    print("Изображение сохранено")
+
+
+bot.infinity_polling()
